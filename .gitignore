@@ -1,0 +1,18 @@
+# Gradle files
+.gradle/
+build/
+
+# IntelliJ files
+.idea/
+*.iml
+*.ipr
+out/
+
+# misc.
+*.class
+*.log
+
+#output
+*.json
+client.jar
+server.jar
