@@ -16,3 +16,4 @@ out/
 *.json
 client.jar
 server.jar
+mappings.zip

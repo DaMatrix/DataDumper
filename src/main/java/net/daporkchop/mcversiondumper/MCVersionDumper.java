@@ -38,65 +38,21 @@ public class MCVersionDumper implements Logging {
     protected static final JsonParser parser = new JsonParser();
     protected static final Gson gson = new GsonBuilder().setLenient().setPrettyPrinting().create();
 
-    protected static Set<String> versions = Collections.synchronizedSet(new HashSet<>());
-
-    protected static final File LOCAL_VERSIONS = new File("versions.json");
-
     public static void main(String... args) throws IOException {
-        logger.enableANSI().addFile(new File("output.log"), LogAmount.DEBUG);
-        if (LOCAL_VERSIONS.exists()) {
-            try (Reader reader = new BufferedReader(new InputStreamReader(new FileInputStream(LOCAL_VERSIONS)))) {
-                versions = Collections.synchronizedSet(StreamSupport.stream(parser.parse(reader).getAsJsonArray().spliterator(), false)
-                        .map(JsonElement::getAsString)
-                        .collect(Collectors.toSet()));
-            }
+        logger.enableANSI()
+                .addFile(new File("output.log"), LogAmount.DEBUG)
+                .setLogAmount(LogAmount.DEBUG);
+
+        if (true) {
+            logger.info("Fetching MCP mappings...");
+            MCPVersions.fetch();
+            logger.success("Complete!");
         }
-        JsonArray arr;
-        try (Reader reader = new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream()))) {
-            arr = parser.parse(reader).getAsJsonObject().getAsJsonArray("versions");
+
+        if (true) {
+            logger.info("Fetching Java Edition jars...");
+            JavaVersions.fetch();
+            logger.success("Complete!");
         }
-        logger.trace("Fetched %d versions.", arr.size());
-        StreamSupport.stream(arr.spliterator(), false)
-                .map(JsonElement::getAsJsonObject)
-                .filter(o -> !versions.contains(o.get("id").getAsString()))
-                .collect(Collectors.toSet())
-                .parallelStream()
-                .forEach((IOConsumer<JsonObject>) o -> {
-                    String id = o.get("id").getAsString();
-                    File root = new File(id);
-                    if (!root.exists() && !root.mkdirs()) {
-                        throw new IllegalStateException(root.getAbsolutePath());
-                    }
-                    logger.info("Downloading %s...", id);
-                    JsonObject downloads;
-
-                    File versionJson = new File(String.format("%s/version.json", id));
-                    try (OutputStream out = new FileOutputStream(versionJson, false)) {
-                        byte[] b = SimpleHTTP.get(o.get("url").getAsString());
-                        out.write(b);
-                        downloads = parser.parse(new InputStreamReader(new ByteArrayInputStream(b))).getAsJsonObject().getAsJsonObject("downloads");
-                    }
-
-                    for (String s : new String[]{"client", "server"})   {
-                        if (!downloads.has(s))  {
-                            continue;
-                        }
-                        logger.info("Downloading %s for %s...", s, id);
-                        File file = new File(String.format("%s/%s.jar", id, s));
-                        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(file, false)))    {
-                            out.write(SimpleHTTP.get(downloads.getAsJsonObject(s).get("url").getAsString()));
-                        }
-                    }
-
-                    versions.add(id);
-                    logger.success("%s complete.", id);
-                });
-
-        try (OutputStream out = new FileOutputStream(LOCAL_VERSIONS, false)) {
-            out.write(gson.toJson(versions.stream()
-                    .collect(JsonArray::new, JsonArray::add, JsonArray::addAll)
-            ).getBytes(UTF8.utf8));
-        }
-        logger.success("Complete!");
     }
 }
