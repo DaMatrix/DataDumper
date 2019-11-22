@@ -1,33 +1,77 @@
-group 'net.daporkchop'
-version '0.0.1'
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2019-2019 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 
-apply plugin: 'java'
+allprojects {
+    apply plugin: "java"
 
-sourceCompatibility = 1.8
+    ext {
+        //general things
+        javaVersion = "1.8"
+        datadumperVersion = "0.4.0"
 
-repositories {
-    mavenLocal()
-    maven {
-        name = "DaPorkchop_"
-        url = "https://maven.daporkchop.net/"
+        //dependency things
+        gsonVersion = "2.8.5"
+        junitVersion = "4.12"
+        lombokVersion = "1.16.20"
+        nettyVersion = "4.1.36.Final"
+        porklibVersion = "0.4.0"
     }
-    mavenCentral()
-}
 
-dependencies {
-    compile "net.daporkchop.lib:http:0.3.0-SNAPSHOT"
-    compile "net.daporkchop.lib:logging:0.3.0-SNAPSHOT"
-    compile "com.google.code.gson:gson:2.8.5"
+    group "net.daporkchop"
+    version "$datadumperVersion"
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-}
+    compileJava {
+        sourceCompatibility = targetCompatibility = "$javaVersion"
+    }
 
-jar {
-    from {
-        configurations.compile.collect {
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
+    repositories {
+        mavenLocal()
+        maven {
+            name = "DaPorkchop_"
+            url = "https://maven.daporkchop.net/"
+        }
+        maven {
+            name = "Sonatype Snapshots"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
+        }
+        mavenCentral()
+    }
+
+    configurations {
+        shade
+        compile.extendsFrom shade
+    }
+
+    dependencies {
+        testCompile "junit:junit:$junitVersion"
+
+        compileOnly "org.projectlombok:lombok:$lombokVersion"
+        testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+        annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+        testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+    }
+
+    jar.from {
+        configurations.shade.collect {
             it.isDirectory() ? it : zipTree(it)
         }
-    }{
+    } {
         exclude "META-INF/*.SF"
         exclude "META-INF/*.DSA"
         exclude "META-INF/*.RSA"
@@ -35,10 +79,19 @@ jar {
             return it.getPath().split("java/main/").last()
         }
     }
+}
 
-    manifest {
-        attributes 'Implementation-Title': 'DaPorkchop_',
-                'Implementation-Version': version,
-                'Main-Class': 'net.daporkchop.mcversiondumper.MCVersionDumper'
-    }
+dependencies {
+    shade "net.daporkchop.lib:http:$porklibVersion"
+    shade "net.daporkchop.lib:logging:$porklibVersion"
+
+    shade "net.daporkchop.lib:encoding:$porklibVersion"
+
+    shade "com.google.code.gson:gson:$gsonVersion"
+}
+
+jar.manifest {
+    attributes "Implementation-Title": "DaPorkchop_",
+            "Implementation-Version": version,
+            "Main-Class": "net.daporkchop.datadumper.DataDumper"
 }

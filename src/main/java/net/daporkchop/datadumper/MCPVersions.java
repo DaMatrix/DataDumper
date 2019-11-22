@@ -1,13 +1,27 @@
-package net.daporkchop.mcversiondumper;
+/*
+ * Adapted from the Wizardry License
+ *
+ * Copyright (c) 2019-2019 DaPorkchop_ and contributors
+ *
+ * Permission is hereby granted to any persons and/or organizations using this software to copy, modify, merge, publish, and distribute it. Said persons and/or organizations are not allowed to use the software or any derivatives of the work for commercial use or any other means to generate income, nor are they allowed to claim this software as their own.
+ *
+ * The persons and/or organizations are also disallowed from sub-licensing and/or trademarking this software without explicit permission from DaPorkchop_.
+ *
+ * Any persons and/or organizations using this software must disclose their source code and have it publicly available, include this license, provide sufficient credit to the original authors of the project (IE: DaPorkchop_), as well as provide a link to the original project.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
+
+package net.daporkchop.datadumper;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.daporkchop.lib.binary.UTF8;
 import net.daporkchop.lib.binary.stream.StreamUtil;
 import net.daporkchop.lib.common.function.PFunctions;
 import net.daporkchop.lib.common.function.io.IOConsumer;
-import net.daporkchop.lib.http.SimpleHTTP;
+import net.daporkchop.lib.http.Http;
 import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipFile;
 
@@ -22,6 +36,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.lang.annotation.Native;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -30,8 +45,8 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import static net.daporkchop.lib.logging.Logging.logger;
-import static net.daporkchop.mcversiondumper.MCVersionDumper.gson;
-import static net.daporkchop.mcversiondumper.MCVersionDumper.parser;
+import static net.daporkchop.datadumper.DataDumper.gson;
+import static net.daporkchop.datadumper.DataDumper.parser;
 
 /**
  * @author DaPorkchop_
@@ -61,7 +76,7 @@ public class MCPVersions {
                     }
 
                     try (OutputStream out = new FileOutputStream(new File(root, "mappings.zip")))   {
-                        out.write(SimpleHTTP.get(v.getURL()));
+                        out.write(Http.get(v.getURL()));
                     }
 
                     try (ZipFile file = new ZipFile(new File(root, "mappings.zip")))    {
@@ -92,7 +107,7 @@ public class MCPVersions {
             mc.getAsJsonArray(version.type).add(version.version);
         }
         try (OutputStream out = new FileOutputStream(LOCAL_VERSIONS))   {
-            out.write(gson.toJson(obj).getBytes(UTF8.utf8));
+            out.write(gson.toJson(obj).getBytes(StandardCharsets.UTF_8));
         }
     }
 
