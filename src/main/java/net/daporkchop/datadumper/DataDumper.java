@@ -50,7 +50,7 @@ public class DataDumper implements Logging {
 
     public static void main(String... args) throws IOException {
         logger.enableANSI()
-                .addFile(new File("output.log"), LogAmount.DEBUG)
+                .addFile(new File("output.log").getAbsoluteFile(), LogAmount.DEBUG)
                 .setLogAmount(LogAmount.DEBUG);
 
         if (true) {

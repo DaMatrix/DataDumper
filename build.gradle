@@ -19,7 +19,7 @@ allprojects {
     ext {
         //general things
         javaVersion = "1.8"
-        datadumperVersion = "0.4.0"
+        datadumperVersion = "0.0.1-SNAPSHOT"
 
         //dependency things
         gsonVersion = "2.8.5"
